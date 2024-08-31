@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innovatex - Carbon Neutrality Pathways</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head
+<body>
+    <header>
+        <h1>Carbon Neutrality Pathways for Coal Mines</h1>
+        <h2>Developed for Smart India Hackathon 2024</h2>
+        <h3>Theme : Renewable / Sustainable Energy | Problem Statement ID: 1644 | Ministry of Coal | SR University, Warangal</h3>
+    </header>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>Activity Input</h2>
+            <form id="activityForm">
+                <label for="mine_name">Mine Name:</label>
+                <input type="text" id="mine_name" name="mine_name" required>
+                <label for="activity">Activity:</label>
+                <input type="text" id="activity" name="activity" required>
+                <label for="emission_factor">Emission Factor:</label>
+                <input type="number" id="emission_factor" name="emission_factor" step="0.01" required>
+                <label for="units">Units:</label>
+                <input type="number" id="units" name="units" required>
+                <button type="submit">Add Activity</button>
+            </form>
+        </div>
+
+        <div id="emissionChart" class="chart-section"></div>
+    </div>
+
+    <footer>
+        <p>© 2024 INNOVATEX@SRU</p>
+    </footer>
+
+    <script>
+        document.getElementById('activityForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                mine_name: formData.get('mine_name'),
+                activity: formData.get('activity'),
+                emission_factor: parseFloat(formData.get('emission_factor')),
+                units: parseInt(formData.get('units'))
+            };
+            const response = await fetch('/add_activity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            alert(result.message);
+            loadEmissions();
+        };
+
+        async function loadEmissions() {
+            const response = await fetch('/get_emissions');
+            const data = await response.json();
+            const chartData = [{
+                x: data.map(item => item.mine_name),
+                y: data.map(item => item.total_emission),
+                type: 'bar',
+                marker: {
+                    color: '#1f77b4'
+                }
+            }];
+            Plotly.newPlot('emissionChart', chartData);
+        }
+
+        window.onload = function() {
+            loadEmissions();
+        };
+    </script>
+</body>
+</html>
